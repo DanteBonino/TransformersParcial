@@ -64,10 +64,10 @@ elMasRapido = maximoSegun velocidadContra
 --Punto 6:
 --a)
 domina :: Robot -> Robot -> Bool
-domina unAutobot  = (all ((== unAutobot).(uncurry elMasrapido)) . crearListaDeEnfrentamientos unAutobot)
+domina unAutobot  = (all ((== unAutobot).(uncurry elMasrapido)) . listaDeEnfrentamientos unAutobot)
 
-crearListaDeEnfrentamientos :: Robot -> Robot -> [(Autobot, Autobot)]
-crearListaDeEnfrentamientos unRobot otroRobot = [(unRobot, otroRobot), (unRobot, transformar otroRobot), (transformar unRobot, otroRobot), (transformar unRobot, transformar otroRobot)]
+listaDeEnfrentamientos :: Robot -> Robot -> [(Autobot, Autobot)]
+listaDeEnfrentamientos unRobot otroRobot = [(unRobot, otroRobot), (unRobot, transformar otroRobot), (transformar unRobot, otroRobot), (transformar unRobot, transformar otroRobot)]
 
 --b)
 dominaATodos :: Robot -> [Robot] -> Bool
