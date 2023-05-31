@@ -2,9 +2,7 @@ module Lib () where
 
 --Cosas que te da el enunciado:
 
-data Autobot = 
-Robot String (Int,Int,Int) ((Int,Int,Int) -> (Int,Int)) | 
-Vehiculo String (Int,Int)
+data Autobot = Robot String (Int,Int,Int) ((Int,Int,Int) -> (Int,Int)) | Vehiculo String (Int,Int) deriving Eq
 
 optimus = Robot "Optimus Prime" (20,20,10) optimusTransformacion
 optimusTransformacion (_,v,r) = (v * 5, r * 2)
@@ -21,10 +19,10 @@ bumblebeeTransformacion (_,v,r) = (v * 4, r * 2)
 autobots = [ optimus, jazz, wheeljack, bumblebee ]
 
 --Punto 1:
-maximoSegun :: (a -> a -> c) -> a -> a -> a
+maximoSegun :: (Ord c) => (a -> a -> c) -> a -> a -> a
 maximoSegun f unValor otroValor
-  | f a b >= f b a = a
-  | otherwise      = b
+  | f unValor otroValor >= f unValor otroValor = unValor
+  | otherwise                                  = otroValor
 
 --Punto 2:
 nombre :: Autobot -> String
@@ -32,30 +30,30 @@ nombre (Robot nombre _ _)       = nombre
 nombre (Vehiculo nombre _)      = nombre
 
 transformador :: Autobot -> ((Int,Int,Int) -> (Int,Int))
-transformador (Robot _ funcionTransformadora) = funcionTransformadora
+transformador (Robot _ _ funcionTransformadora) = funcionTransformadora
 
-fuerza :: Autbot -> Int
-nombre (Robot _ (fuerza _ _) _)       = fuerza
-nombre  _                             = 0
+fuerza :: Autobot -> Int
+fuerza (Robot _ (fuerza, _, _) _)       = fuerza
+fuerza  _                               = 0
 
-velocidad :: Autbot -> Int
-nombre (Robot _ (_ velocidad _) _)  = velocidad
-nombre (Vehiculo _ (velocidad _))   = velocidad
+velocidad :: Autobot -> Int
+velocidad (Robot _ (_,velocidad, _) _)  = velocidad
+velocidad (Vehiculo _ (velocidad, _))   = velocidad
 
 resistencia :: Autobot -> Int
-resistencia (Robot _ (_ _ resistencia) _)  = resistencia
-resistencia (Vehiculo _ (_ resistencia))   = resistencia
+resistencia (Robot _ (_, _, resistencia) _)  = resistencia
+resistencia (Vehiculo _ (_ ,resistencia))   = resistencia
 
 --Punto 3:
-transformar :: Robot -> Vehiculo
-transformar unRobot = Vehiculo (nombre unRobot) ((transformador unRobot) . (todosLosAtributos) unRobot)
+transformar :: Autobot -> Autobot
+transformar unRobot = Vehiculo (nombre unRobot) (((transformador unRobot) . (todosLosAtributos)) unRobot)
 
-todosLosAtributos :: Robot -> (Int, Int, Int)
+todosLosAtributos :: Autobot -> (Int, Int, Int)
 todosLosAtributos (Robot _ atributos _) = atributos
 
 --Punto 4:
 velocidadContra :: Autobot -> Autobot -> Int
-velocidadContra unAutobot otroAutobot = velocidad unAutobot - max 0 ((subtract fuerza otrAutobot . resistencia) unAutobot)
+velocidadContra unAutobot otroAutobot = velocidad unAutobot - max 0 ((subtract (fuerza otroAutobot) . resistencia) unAutobot)
 
 --Punto 5:
 elMasRapido :: Autobot -> Autobot -> Autobot
@@ -63,26 +61,41 @@ elMasRapido = maximoSegun velocidadContra
 
 --Punto 6:
 --a)
-domina :: Robot -> Robot -> Bool
-domina unAutobot  = (all ((== unAutobot).(uncurry elMasrapido)) . listaDeEnfrentamientos unAutobot)
+domina :: Autobot -> Autobot -> Bool
+domina unAutobot  = (all ((== unAutobot).(uncurry elMasRapido)) . listaDeEnfrentamientos unAutobot)
 
-listaDeEnfrentamientos :: Robot -> Robot -> [(Autobot, Autobot)]
+listaDeEnfrentamientos :: Autobot -> Autobot -> [(Autobot, Autobot)]
 listaDeEnfrentamientos unRobot otroRobot = [(unRobot, otroRobot), (unRobot, transformar otroRobot), (transformar unRobot, otroRobot), (transformar unRobot, transformar otroRobot)]
 
 --b)
-dominaATodos :: Robot -> [Robot] -> Bool
-dominaATodos  unRobot = all (domina unAutobot)
+dominaATodos :: Autobot -> [Autobot] -> Bool
+dominaATodos  unRobot = all (domina unRobot)
+
 --Punto 7:
 --a)
-quienesCumplen :: (Autbot -> Bool)-> [Autobot] -> [Autobot]
-quienesCumplen unaCondicion = filter unaCondicion
+quienesCumplen :: (Autobot -> Bool)-> [Autobot] -> [String]
+quienesCumplen unaCondicion = map nombre . filter unaCondicion
 --b)
 dominaAtodosYSuNombreTerminaEnVocal :: [Autobot] -> Bool
-dominaAtodosYSuNombreTerminaEnVocal unaListaDeAutobots = quienesCumplen (flip dominaATodos unaListaDeAutobots) unaListaDeAutobots
+dominaAtodosYSuNombreTerminaEnVocal unaListaDeAutobots =  ((not . null) . quienesCumplen (dominaATodosYTerminaEnVocal unaListaDeAutobots)) unaListaDeAutobots
+
+dominaATodosYTerminaEnVocal :: [Autobot] -> Autobot -> Bool
+dominaATodosYTerminaEnVocal unaListaDeAutobots unAutobot = dominaATodos unAutobot unaListaDeAutobots && (terminaEnVocal . nombre) unAutobot
+
+terminaEnVocal :: String -> Bool
+terminaEnVocal = (esVocal . last)
+
+esVocal :: Char -> Bool
+esVocal = flip elem vocales
+
+vocales :: String
+vocales = "aeiou"
 
 --Punto 8:
 saraza :: (Ord c) => a -> a -> a -> (a -> a -> c) -> c
 saraza x y w z = z w . maximoSegun z y $ x
+
+
 
 
 
